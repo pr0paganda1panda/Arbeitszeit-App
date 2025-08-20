@@ -2,13 +2,19 @@ import streamlit as st
 from PIL import Image
 import pytesseract
 from pdf2image import convert_from_bytes
-from datetime import datetime, timedelta
+from datetime import datetime
 import re
+import os
 
-st.title("Arbeitszeit-Differenz Rechner")
+st.set_page_config(page_title="Arbeitszeit-Differenz Rechner")
 
-uploaded_file1 = st.file_uploader("Erstes Bild/PDF", type=['png','jpg','jpeg','pdf'])
-uploaded_file2 = st.file_uploader("Zweites Bild/PDF", type=['png','jpg','jpeg','pdf'])
+st.title("Arbeitszeit-Differenz Rechner 📊")
+
+uploaded_file1 = st.file_uploader("Erstes Bild/PDF hochladen", type=['png','jpg','jpeg','pdf'])
+uploaded_file2 = st.file_uploader("Zweites Bild/PDF hochladen", type=['png','jpg','jpeg','pdf'])
+
+# Streamlit Cloud hat Tesseract im PATH
+pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
 
 def extract_text(file):
     if file.name.endswith('.pdf'):
@@ -22,6 +28,7 @@ def extract_text(file):
         return pytesseract.image_to_string(img)
 
 def calculate_diff(text1, text2):
+    # Muster: 08:00-12:00
     pattern = r'(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})'
     times1 = re.findall(pattern, text1)
     times2 = re.findall(pattern, text2)
@@ -45,3 +52,5 @@ if uploaded_file1 and uploaded_file2:
     text2 = extract_text(uploaded_file2)
     hours, minutes = calculate_diff(text1, text2)
     st.success(f"Differenz: {hours} Stunden und {minutes} Minuten")
+else:
+    st.info("Bitte lade beide Dateien hoch, um die Differenz zu berechnen.")
